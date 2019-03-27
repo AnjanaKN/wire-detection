@@ -119,7 +119,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable (wire_detector src/wire_detector.cpp src/wire_detector.h)
-target_link_libraries (wire_detector ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries (wire_detector ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
 
 
 
