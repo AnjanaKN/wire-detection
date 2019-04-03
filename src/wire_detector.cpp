@@ -56,9 +56,14 @@ int main(int argc,char** argv){
 	WireDetector w;
 	
 	//2d DETETCION
-	string img_filename="/home/anjana/catkin_ws/src/wire_detector/data/left/frame0000.jpg";
+	string img_filename="/media/anjana/bfd698a2-ee0e-403e-955d-bada0ce8da97/home/agvbotics/ros_ws/old src/pruner_image/src/a.png";
 	cv::Mat left = imread(img_filename);
-	vector<Point> points = w.Detect2DLines(left);
+	vector<Point> points = w.Detect2DLines(left,0.2);
+
+	//string img_filename="/home/anjana/catkin_ws/src/wire_detector/data/left/frame0000.jpg";
+	//cv::Mat left = imread(img_filename);
+	//vector<Point> points = w.Detect2DLines(left,0.1745);
+	
 	
 	//3D detection
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);

@@ -70,7 +70,18 @@ public:
 		
 
 		filter2D(image,img_prewittx, -1, kernelx);
+
+		namedWindow("Input image with green lines", WINDOW_NORMAL);
+		imshow("Input image with green lines", img_prewittx);
+
+    	waitKey(0);
 		threshold(img_prewittx, img_prewittx, 60, 255, 0);
+
+		namedWindow("Input image with green lines", WINDOW_NORMAL);
+		imshow("Input image with green lines",img_prewittx);
+		
+    	waitKey(0);
+    	//DestroyWindow("Input image with green lines");
 
         //Canny(image, img_prewittx, 2, 80, 3);
 
