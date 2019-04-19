@@ -51,9 +51,11 @@ class fitted_lines{
 
 public:
 	fitted_lines(){};
-	fitted_lines(vector<int> h, vector<int> v):horizontal_inliers(h),vertical_inliers(v){};
+	fitted_lines(vector<int> h, vector<int> v,Eigen::VectorXf hc,Eigen::VectorXf vc):horizontal_inliers(h),vertical_inliers(v),hc(hc),vc(vc){};
 	vector<int> horizontal_inliers;
 	vector<int> vertical_inliers;
+	Eigen::VectorXf hc;
+	Eigen::VectorXf vc;
 };
 
 
@@ -164,7 +166,7 @@ fitted_lines fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
 		vector<int> v_inliers;
 		vector<int> h_inliers;
 		Eigen::VectorXf wire,cordon;
-		pcl::ModelCoefficients line1,line2;
+	
 		Eigen::Vector3f ax,ax2;
 		ax<<0.0,1.0,0.0;
 		SampleConsensusModelParallelLine<pcl::PointXYZ>::Ptr model_l (new SampleConsensusModelParallelLine<PointXYZ> (wire_cloud.makeShared ()));
@@ -175,28 +177,31 @@ fitted_lines fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
 	    ransac.computeModel();
 	    ransac.getInliers(h_inliers);
 	    ransac.getModelCoefficients(wire);
-	    //cout<<line1.values.size()<<endl;
-	    for (int j=0;j<wire.size();j++)
-	    {
-	    	line1.values.push_back(wire[j]);
-	    }
+
 	    
 		ax2<<1.0,0.0,0.0;
-		//SampleConsensusModelParallelLine<pcl::PointXYZ>::Ptr model_l (new SampleConsensusModelParallelLine<PointXYZ> (wire_cloud.makeShared ()));
-		model_l->setAxis(ax);
-	    model_l->setEpsAngle(pcl::deg2rad (10.0));
-		pcl::RandomSampleConsensus<pcl::PointXYZ> ransac2 (model_l);
+		SampleConsensusModelParallelLine<pcl::PointXYZ>::Ptr model_l2 (new SampleConsensusModelParallelLine<PointXYZ> (wire_cloud.makeShared ()));
+		model_l2->setAxis(ax2);
+	    model_l2->setEpsAngle(pcl::deg2rad (10.0));
+		pcl::RandomSampleConsensus<pcl::PointXYZ> ransac2 (model_l2);
 	   	ransac2.setDistanceThreshold (thresh);
 	    ransac2.computeModel();
 	    ransac2.getInliers(v_inliers);
 	    ransac2.getModelCoefficients(cordon);
-	      for (int j=0;j<cordon.size();j++)
-	    {
-	    	line2.values.push_back(cordon[j]);
-	    }
-	    vtkSmartPointer<vtkDataSet> data1 = pcl::visualization::createLine (line1);
-	    vtkSmartPointer<vtkDataSet> data2 = pcl::visualization::createLine (line2);
-	    //pcl::visualization::PCLVisualizer::Ptr viewer;
+       	
+	    fitted_lines f(h_inliers,v_inliers,wire,cordon);
+		return f;
+		}
+
+
+
+private:
+	typedef SampleConsensusModelLine<PointXYZ>::Ptr SampleConsensusModelLinePtr;
+	std::vector<int> inliers;
+};
+
+//VIEWER PART
+/*//pcl::visualization::PCLVisualizer::Ptr viewer;
 	    //pcl::PointCloud<pcl::PointXYZ>::Ptr final (new pcl::PointCloud<pcl::PointXYZ>);
 	    //pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud (new pcl::PointCloud<pcl::PointXYZ> (wire_cloud));
  		//pcl::copyPointCloud<pcl::PointXYZ>(wire_cloud, inliers, *final);
@@ -212,16 +217,4 @@ fitted_lines fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
 			  {
 			    viewer->spinOnce (100);
 			    boost::this_thread::sleep (boost::posix_time::microseconds (100000));
-			  }
-
-        */
-	    	fitted_lines f(h_inliers,v_inliers);
-			return f;
-		}
-
-
-
-private:
-	typedef SampleConsensusModelLine<PointXYZ>::Ptr SampleConsensusModelLinePtr;
-	std::vector<int> inliers;
-};
+			  }*/

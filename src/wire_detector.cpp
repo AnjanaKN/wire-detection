@@ -58,7 +58,7 @@ protected:
 
 
 
-float z_val=-10.0;
+float x_val=1.0;
 
 void callback(const sensor_msgs::PointCloud2ConstPtr& mega)
 {
@@ -68,28 +68,52 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& mega)
     pcl::fromROSMsg(*mega ,*cloud);
       
     pcl::PointCloud<pcl::PointXYZ>::Ptr wires( new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr wires_fill( new pcl::PointCloud<pcl::PointXYZ>);
+
     pcl::PointCloud<pcl::PointXYZ>::Ptr cordon( new pcl::PointCloud<pcl::PointXYZ>);
    
     fitted_lines fl;
     fl = w.fit3Dlines(*cloud);
     float x,y,z;
     pcl::copyPointCloud<pcl::PointXYZ>(*cloud, fl.horizontal_inliers, *wires);
-    for (int i=0;i<fl.horizontal_inliers.size();i++)
-
-    {   x=wires->points[i].x;
-        y=wires->points[i].y;
-        z=wires->points[i].z+z_val;
-        wires->points.push_back(pcl::PointXYZ(x,y,z));
-    }
+    int w_c_size=wires->points.size();
+    
     
     pcl::copyPointCloud<pcl::PointXYZ>(*cloud, fl.vertical_inliers, *cordon);
+    
+    float t=2.0;
+    for(int i=0;i<350;i++)
+    {	t -=0.01;
+    	wires_fill->points.push_back(pcl::PointXYZ(fl.hc[0]+t*fl.hc[3],fl.hc[1]+t*fl.hc[4],fl.hc[2]+t*fl.hc[5]));
+    	//cout<<"t: "<<t<<"   ";
+    	/*wires->points.push_back(pcl::PointXYZ(fl.hc[0]+0.02,fl.hc[1]+t,fl.hc[2]));
+    	wires->points.push_back(pcl::PointXYZ(fl.hc[0]+0.02,fl.hc[1]+t,fl.hc[2]+0.02));
+    	wires->points.push_back(pcl::PointXYZ(fl.hc[0]-0.02,fl.hc[1]+t,fl.hc[2]));
+    	wires->points.push_back(pcl::PointXYZ(fl.hc[0]+0.02,fl.hc[1]+t,fl.hc[2]-0.02));
+    	wires->points.push_back(pcl::PointXYZ(fl.hc[0]+0.02,fl.hc[1]+t,fl.hc[2]+0.02));
+    	wires->points.push_back(pcl::PointXYZ(fl.hc[0]-0.02,fl.hc[1]+t,fl.hc[2]-0.02));
+    */
+    }
+    
+
+
+
+
+    for (int i=0;i<350;i++)
+
+    {   x=wires_fill->points[i].x+x_val;
+        y=wires_fill->points[i].y;
+        z=wires_fill->points[i].z;
+        wires_fill->points.push_back(pcl::PointXYZ(x,y,z));
+    }
 
     sensor_msgs::PointCloud2 output;
         
-    pcl::toROSMsg(*wires+*cordon, output);
+    pcl::toROSMsg(*wires_fill+*cordon, output);
     output.header.frame_id = "camera_link";
     
     wired_pub.publish(output);
+
     
 }
 
@@ -110,7 +134,7 @@ int main(int argc,char** argv){
     //vector<Point> points = w.Detect2DLines(left,0.1745);
     
     //ros::Subscriber<sensor_msgs::PointCloud2> wire_sub(nh, "/mega_cloud", 1);
-    ros::Subscriber sub =  nh.subscribe("/mega_cloud",10, callback);
+    ros::Subscriber sub =  nh.subscribe("/cloud_pcd",10, callback);
     //registerCallback(boost::bind(&callback, _1));
 
 
