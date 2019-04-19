@@ -43,7 +43,7 @@
 using namespace std;
 using namespace cv;
 using namespace pcl;
-
+using namespace ros;
 
 
 
@@ -129,10 +129,10 @@ public:
 	    //Image display
 	   
 	   
-		namedWindow("Input image with green lines", WINDOW_NORMAL);
-		imshow("Input image with green lines", out_image);
+		//namedWindow("Input image with green lines", WINDOW_NORMAL);
+		//imshow("Input image with green lines", out_image);
 
-    	waitKey();
+    	//waitKey();
     	
 
     	return points_of_line;
@@ -163,10 +163,10 @@ vector<int> fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
 
 		vector<int> inliers;
 		Eigen::Vector3f ax;
-		ax<<1.0,0.0,0.0;
+		ax<<0.0,1.0,0.0;
 		SampleConsensusModelParallelLine<pcl::PointXYZ>::Ptr model_l (new SampleConsensusModelParallelLine<PointXYZ> (wire_cloud.makeShared ()));
 		model_l->setAxis(ax);
-	    model_l->setEpsAngle(pcl::deg2rad (5.0));
+	    model_l->setEpsAngle(pcl::deg2rad (10.0));
 		pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_l);
 	   	ransac.setDistanceThreshold (thresh);
 	    ransac.computeModel();
@@ -177,10 +177,11 @@ vector<int> fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
  		pcl::copyPointCloud<pcl::PointXYZ>(wire_cloud, inliers, *final);
  		
  		//Store point cloud of wire
- 		pcl::PLYWriter wr;
-		wr.write("/home/anjana/catkin_ws/wire_detector_20_detected.ply", *final);
+ 		//pcl::PLYWriter wr;
+		//wr.write("/home/anjana/catkin_ws/wire_detector_20_detected.ply", *final);
    		
 		//Visualize point cloud of wire
+   		/*
    		viewer = simpleVis(input_cloud,final);
 	 	 while (!viewer->wasStopped ())
 			  {
@@ -188,7 +189,7 @@ vector<int> fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
 			    boost::this_thread::sleep (boost::posix_time::microseconds (100000));
 			  }
 
-
+        */
 
 			return inliers;
 		}
