@@ -171,10 +171,10 @@ vector<int> fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
 	   	ransac.setDistanceThreshold (thresh);
 	    ransac.computeModel();
 	    ransac.getInliers(inliers);
-	    pcl::visualization::PCLVisualizer::Ptr viewer;
-	    pcl::PointCloud<pcl::PointXYZ>::Ptr final (new pcl::PointCloud<pcl::PointXYZ>);
-	    pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud (new pcl::PointCloud<pcl::PointXYZ> (wire_cloud));
- 		pcl::copyPointCloud<pcl::PointXYZ>(wire_cloud, inliers, *final);
+	    //pcl::visualization::PCLVisualizer::Ptr viewer;
+	    //pcl::PointCloud<pcl::PointXYZ>::Ptr final (new pcl::PointCloud<pcl::PointXYZ>);
+	    //pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud (new pcl::PointCloud<pcl::PointXYZ> (wire_cloud));
+ 		//pcl::copyPointCloud<pcl::PointXYZ>(wire_cloud, inliers, *final);
  		
  		//Store point cloud of wire
  		//pcl::PLYWriter wr;
