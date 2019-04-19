@@ -47,7 +47,14 @@ using namespace ros;
 
 
 
+class fitted_lines{
 
+public:
+	fitted_lines(){};
+	fitted_lines(vector<int> h, vector<int> v):horizontal_inliers(h),vertical_inliers(v){};
+	vector<int> horizontal_inliers;
+	vector<int> vertical_inliers;
+};
 
 
 class WireDetector{
@@ -124,14 +131,9 @@ public:
 			//cout<<"copied"<<endl;
 			//string filename ="Left_masked.png";
 			//imwrite(filename,new_image);
-
-
-	    //Image display
-	   
-	   
+	    //Image display	   
 		//namedWindow("Input image with green lines", WINDOW_NORMAL);
 		//imshow("Input image with green lines", out_image);
-
     	//waitKey();
     	
 
@@ -158,11 +160,12 @@ pcl::visualization::PCLVisualizer::Ptr simpleVis (pcl::PointCloud<pcl::PointXYZ>
 
 
 //RANSAC 3D line fitting function,input - point cloud, output- inlier indices
-vector<int> fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
-
-
-		vector<int> inliers;
-		Eigen::Vector3f ax;
+fitted_lines fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
+		vector<int> v_inliers;
+		vector<int> h_inliers;
+		Eigen::VectorXf wire,cordon;
+		pcl::ModelCoefficients line1,line2;
+		Eigen::Vector3f ax,ax2;
 		ax<<0.0,1.0,0.0;
 		SampleConsensusModelParallelLine<pcl::PointXYZ>::Ptr model_l (new SampleConsensusModelParallelLine<PointXYZ> (wire_cloud.makeShared ()));
 		model_l->setAxis(ax);
@@ -170,7 +173,29 @@ vector<int> fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
 		pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_l);
 	   	ransac.setDistanceThreshold (thresh);
 	    ransac.computeModel();
-	    ransac.getInliers(inliers);
+	    ransac.getInliers(h_inliers);
+	    ransac.getModelCoefficients(wire);
+	    //cout<<line1.values.size()<<endl;
+	    for (int j=0;j<wire.size();j++)
+	    {
+	    	line1.values.push_back(wire[j]);
+	    }
+	    
+		ax2<<1.0,0.0,0.0;
+		//SampleConsensusModelParallelLine<pcl::PointXYZ>::Ptr model_l (new SampleConsensusModelParallelLine<PointXYZ> (wire_cloud.makeShared ()));
+		model_l->setAxis(ax);
+	    model_l->setEpsAngle(pcl::deg2rad (10.0));
+		pcl::RandomSampleConsensus<pcl::PointXYZ> ransac2 (model_l);
+	   	ransac2.setDistanceThreshold (thresh);
+	    ransac2.computeModel();
+	    ransac2.getInliers(v_inliers);
+	    ransac2.getModelCoefficients(cordon);
+	      for (int j=0;j<cordon.size();j++)
+	    {
+	    	line2.values.push_back(cordon[j]);
+	    }
+	    vtkSmartPointer<vtkDataSet> data1 = pcl::visualization::createLine (line1);
+	    vtkSmartPointer<vtkDataSet> data2 = pcl::visualization::createLine (line2);
 	    //pcl::visualization::PCLVisualizer::Ptr viewer;
 	    //pcl::PointCloud<pcl::PointXYZ>::Ptr final (new pcl::PointCloud<pcl::PointXYZ>);
 	    //pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud (new pcl::PointCloud<pcl::PointXYZ> (wire_cloud));
@@ -190,8 +215,8 @@ vector<int> fit3Dlines(PointCloud<PointXYZ> wire_cloud,float thresh=0.01){
 			  }
 
         */
-
-			return inliers;
+	    	fitted_lines f(h_inliers,v_inliers);
+			return f;
 		}
 
 

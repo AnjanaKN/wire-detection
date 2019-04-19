@@ -57,6 +57,7 @@ protected:
 */
 
 
+
 float z_val=-10.0;
 
 void callback(const sensor_msgs::PointCloud2ConstPtr& mega)
@@ -65,32 +66,27 @@ void callback(const sensor_msgs::PointCloud2ConstPtr& mega)
     
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::fromROSMsg(*mega ,*cloud);
-    vector<int> inliers =w.fit3Dlines(*cloud);
-    
-    
+      
     pcl::PointCloud<pcl::PointXYZ>::Ptr wires( new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cordon( new pcl::PointCloud<pcl::PointXYZ>);
    
-
-    //boost::shared_ptr< vector<int> > indicesPtr(new vector<int>(inliers));
-    //pcl::ExtractIndices<pcl::PointXYZ> extract(true);
-    //extract.setInputCloud (cloud);
-    //extract.setIndices (indicesPtr);
-    //extract.setNegative (true);
-    //extract.applyFilterIndices(inliers);
-    //extract.filter (*cloud_final);
+    fitted_lines fl;
+    fl = w.fit3Dlines(*cloud);
     float x,y,z;
-    pcl::copyPointCloud<pcl::PointXYZ>(*cloud, inliers, *wires);
-    for (int i=0;i<inliers.size();i++)
+    pcl::copyPointCloud<pcl::PointXYZ>(*cloud, fl.horizontal_inliers, *wires);
+    for (int i=0;i<fl.horizontal_inliers.size();i++)
 
     {   x=wires->points[i].x;
         y=wires->points[i].y;
         z=wires->points[i].z+z_val;
         wires->points.push_back(pcl::PointXYZ(x,y,z));
     }
-        
+    
+    pcl::copyPointCloud<pcl::PointXYZ>(*cloud, fl.vertical_inliers, *cordon);
+
     sensor_msgs::PointCloud2 output;
         
-    pcl::toROSMsg(*wires, output);
+    pcl::toROSMsg(*wires+*cordon, output);
     output.header.frame_id = "camera_link";
     
     wired_pub.publish(output);
