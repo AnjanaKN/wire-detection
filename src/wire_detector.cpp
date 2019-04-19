@@ -1,11 +1,17 @@
 #include "wire_detector.h"
+#include <message_filters/subscriber.h>
 
+
+#include <pcl/filters/extract_indices.h>
+#include <pcl/point_types.h>
+#include <pcl/PointIndices.h>
+#include <pcl/point_cloud.h>
 
 using namespace std;
 using namespace cv;
 
 
-
+ros::Publisher wired_pub;
 
 namespace patch
 {
@@ -50,27 +56,63 @@ protected:
 };
 */
 
+void callback(const sensor_msgs::PointCloud2ConstPtr& mega)
+{
+    WireDetector w;
+    
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::fromROSMsg(*mega ,*cloud);
+    vector<int> inliers =w.fit3Dlines(*cloud);
+    
+    
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_final ( new pcl::PointCloud<pcl::PointXYZ>);
+
+    //boost::shared_ptr< vector<int> > indicesPtr(new vector<int>(inliers));
+    //pcl::ExtractIndices<pcl::PointXYZ> extract(true);
+    //extract.setInputCloud (cloud);
+    //extract.setIndices (indicesPtr);
+    //extract.setNegative (true);
+    //extract.applyFilterIndices(inliers);
+    //extract.filter (*cloud_final);
+    
+    pcl::copyPointCloud<pcl::PointXYZ>(*cloud, inliers, *cloud_final);
+
+    sensor_msgs::PointCloud2 output;
+        
+    pcl::toROSMsg(*cloud_final, output);
+    output.header.frame_id = "camera_link";
+    
+    wired_pub.publish(output);
+    
+}
+
 int main(int argc,char** argv){
 
 
-	WireDetector w;
-	
+	ros::init(argc, argv, "wire_detector");
+    ros::NodeHandle nh;
+
+	wired_pub = nh.advertise<sensor_msgs::PointCloud2> ("/wire", 1);
 	//2d DETETCION
-	string img_filename="/media/anjana/bfd698a2-ee0e-403e-955d-bada0ce8da97/home/agvbotics/ros_ws/old src/pruner_image/src/a.png";
-	cv::Mat left = imread(img_filename);
-	vector<Point> points = w.Detect2DLines(left,0.2);
+	//string img_filename="/media/anjana/bfd698a2-ee0e-403e-955d-bada0ce8da97/home/agvbotics/ros_ws/old src/pruner_image/src/a.png";
+	//cv::Mat left = imread(img_filename);
+	//vector<Point> points = w.Detect2DLines(left,0.2);
 
 	//string img_filename="/home/anjana/catkin_ws/src/wire_detector/data/left/frame0000.jpg";
 	//cv::Mat left = imread(img_filename);
 	//vector<Point> points = w.Detect2DLines(left,0.1745);
 	
-	
-	//3D detection
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+	//ros::Subscriber<sensor_msgs::PointCloud2> wire_sub(nh, "/mega_cloud", 1);
+	ros::Subscriber sub =  nh.subscribe("/mega_cloud",10, callback);
+	//registerCallback(boost::bind(&callback, _1));
 
-	pcl::PLYReader Reader;
-	Reader.read("/home/anjana/catkin_ws/wire_detector_20.ply", *cloud);
-	vector<int> inliers =w.fit3Dlines(*cloud);
+
+      ros::spin();
+
+
+	//pcl::PLYReader Reader;
+	//Reader.read("/home/anjana/catkin_ws/wire_detector_20.ply", *cloud);
+	//vector<int> inliers =w.fit3Dlines(*cloud);
 
 
 
