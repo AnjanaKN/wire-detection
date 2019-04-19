@@ -134,7 +134,7 @@ int main(int argc,char** argv){
     //vector<Point> points = w.Detect2DLines(left,0.1745);
     
     //ros::Subscriber<sensor_msgs::PointCloud2> wire_sub(nh, "/mega_cloud", 1);
-    ros::Subscriber sub =  nh.subscribe("/cloud_pcd",10, callback);
+    ros::Subscriber sub =  nh.subscribe("/mega_cloud",10, callback);
     //registerCallback(boost::bind(&callback, _1));
 
 
